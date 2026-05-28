@@ -1,17 +1,20 @@
 import Account.Account;
-import Account.BusinessAccount;
-import Account.SavingsAccount;
+import AccountService.AccountService;
+import AccountService.AccountServiceImpl;
 import Enums.Currency;
 
 public class App{
     public static void main(String[] args){
-        Account saving = new SavingsAccount("ACC_S001", "Negm", Currency.EGP, 24500);
-        Account business = new BusinessAccount("ACC_B001", "Ahmed", Currency.USD, 56000);
+        AccountService service = new AccountServiceImpl();
 
-        System.out.println(saving);
-        System.out.println(business);
 
-        System.out.println("Saving limit: " + saving.getTransactionLimit());
-        System.out.println("Business limit: " + business.getTransactionLimit());
+        Account negm = service.createSavingsAccount("negm", Currency.EGP, 56000);
+        Account ahmed = service.createBusinessAccount("ahmed", Currency.USD, 100000);
+
+        System.out.println("-- ALL ACCOUNTS --");
+        service.displayAllAccounts();
+
+        System.out.println("FIND BY ID");
+        System.out.println(service.findById(negm.getId()));
     }
 }
