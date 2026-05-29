@@ -9,71 +9,88 @@ import java.util.UUID;
 import Account.Account;
 import Enums.TransactionStatus;
 import Enums.TransactionType;
+import Exceptions.InsufficientFundsException;
+import Exceptions.InvalidTransactionException;
 import Transaction.Transacation;
 
 public class TransactionServiceImpl implements TransactionService {
-    public void deposit(Account account, double amount){
+    public void deposit(Account account, double amount) {
+        if (amount <= 0) {
+            throw new InvalidTransactionException("Deposit amount must be positive");
+        }
+        
+        if (amount > account.getTransactionLimit()) {
+            throw new InvalidTransactionException("Exceeds " + account.getAccountType() + " limit of " + account.getTransactionLimit());
+        }
+
         account.credit(amount);
-          Transacation tx = new Transacation(
-            UUID.randomUUID().toString(),
-            null,
-            account.getId(),
-            amount,
-            account.getCurrency(),
-            TransactionType.DEPOSIT,
-            TransactionStatus.COMPLETED,
-            LocalDateTime.now()
-        );
-        account.addTransaction(tx);
-        System.out.println("[+] Deposited "+ amount+ " -> "+ account.getName());
-    }
-
-    public void withdrawl(Account account, double amount){
-        account.debit(amount);
-
         Transacation tx = new Transacation(
-            UUID.randomUUID().toString(),
-            account.getId(),
-            null,
-            amount,
-            account.getCurrency(),
-            TransactionType.WITHDRAWL,
-            TransactionStatus.COMPLETED,
-            LocalDateTime.now()
-        );
+                UUID.randomUUID().toString(),
+                null,
+                account.getId(),
+                amount,
+                account.getCurrency(),
+                TransactionType.DEPOSIT,
+                TransactionStatus.COMPLETED,
+                LocalDateTime.now());
         account.addTransaction(tx);
-        System.out.println("[+] Withdrawn  "+ amount+ " from "+ account.getName());
+        System.out.println("[+] Deposited " + amount + " -> " + account.getName());
     }
 
-    public void transfer(Account from,Account to, double amount){
+    public void withdraw(Account account, double amount) {
+
+        // cheking amount before withdraw
+        if (amount > account.getBalance()) {
+            throw new InsufficientFundsException(account.getName(), amount, account.getBalance());
+        }
+
+        account.debit(amount);
+        Transacation tx = new Transacation(
+                UUID.randomUUID().toString(),
+                account.getId(),
+                null,
+                amount,
+                account.getCurrency(),
+                TransactionType.WITHDRAWL,
+                TransactionStatus.COMPLETED,
+                LocalDateTime.now());
+        account.addTransaction(tx);
+        System.out.println("[+] Withdrawn  " + amount + " from " + account.getName());
+    }
+
+    public void transfer(Account from, Account to, double amount) {
+
+        if (amount > from.getBalance()) {
+            throw new InsufficientFundsException(from.getName(), amount, from.getBalance());
+        }
+
         from.debit(amount);
         to.credit(amount);
-         Transacation tx = new Transacation(
-            UUID.randomUUID().toString(),
-            from.getId(),
-            to.getId(),
-            amount,
-            from.getCurrency(),
-            TransactionType.TRANSFER,
-            TransactionStatus.COMPLETED,
-            LocalDateTime.now()
-        );
+        Transacation tx = new Transacation(
+                UUID.randomUUID().toString(),
+                from.getId(),
+                to.getId(),
+                amount,
+                from.getCurrency(),
+                TransactionType.TRANSFER,
+                TransactionStatus.COMPLETED,
+                LocalDateTime.now());
         from.addTransaction(tx);
         to.addTransaction(tx);
-        System.out.println("Transferred "+ amount+ " from" +from.getName()+ " to "+ to.getName());
+        System.out.println("Transferred " + amount + " from" + from.getName() + " to " + to.getName());
     }
 
-    public List<Transacation> getHistory(Account account){
+    public List<Transacation> getHistory(Account account) {
         return account.getTransactionHistory();
     }
 
-    public Optional<Transacation> getLargestTransaction(Account account){
+    public Optional<Transacation> getLargestTransaction(Account account) {
         return account.getTransactionHistory().stream().max(Comparator.comparingDouble(Transacation::amount));
     }
 
-    public double getTotalSpent(Account account){
+    public double getTotalSpent(Account account) {
         return account.getTransactionHistory()
-        .stream().filter(tx-> tx.type() == TransactionType.WITHDRAWL || tx.type() == TransactionType.TRANSFER)
-        .mapToDouble(Transacation::amount).sum();
+                .stream().filter(tx -> tx.type() == TransactionType.WITHDRAWL || tx.type() == TransactionType.TRANSFER)
+                .mapToDouble(Transacation::amount).sum();
     }
 }

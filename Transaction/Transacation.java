@@ -5,7 +5,7 @@ import Enums.Currency;
 import Enums.TransactionStatus;
 import Enums.TransactionType;
 
-public record Transcation(
+public record Transacation(
     String id,
     String fromAccount,
     String toAccountId,

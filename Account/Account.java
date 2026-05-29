@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import Enums.Currency;
-import Transaction.Transcation;
+import Transaction.Transacation;
 
 public abstract class Account {
     private String id;
     private String name;
     private Currency currency;
     private double balance;
-    private List<Transcation> transactionHistory = new ArrayList<>();
+    private List<Transacation> transactionHistory = new ArrayList<>();
 
     public Account(String id, String name, Currency currency, double balance) {
         this.id = id;
@@ -32,11 +32,11 @@ public abstract class Account {
         this.balance -= amount;
     }
 
-    public void addTransaction(Transcation tx){
+    public void addTransaction(Transacation tx){
         transactionHistory.add(tx);
     }
     
-    public List<Transcation> getTransactionHistory(){
+    public List<Transacation> getTransactionHistory(){
         return transactionHistory;
     }
 
